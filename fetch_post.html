@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Ads</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/scripts.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>View Ads</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="post_ad.html">Post an Ad</a>
+            <a href="login.html">Login</a>
+            <a href="register.html">Register</a>
+        </nav>
+    </header>
+
+    <main>
+        <form id="filterForm">
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender">
+                <option value="">All</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+
+            <label for="city">City:</label>
+            <input type="text" id="city" name="city">
+
+            <label for="county">County:</label>
+            <input type="text" id="county" name="county">
+
+            <label for="state">State:</label>
+            <input type="text" id="state" name="state">
+
+            <button type="submit">Filter</button>
+        </form>
+
+        <section id="adsContainer"></section>
+    </main>
+
+    <footer>
+        &copy; 2024 Personal Ads Site. All rights reserved.
+    </footer>
+
+    <script>
+        document.getElementById('filterForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const queryString = new URLSearchParams(formData).toString();
+
+            fetch(`fetch_ads.php?${queryString}`)
+                .then(response => response.json())
+                .then(data => {
+                    const adsContainer = document.getElementById('adsContainer');
+                    adsContainer.innerHTML = '';
+                    data.forEach(ad => {
+                        const adElement = document.createElement('div');
+                        adElement.className = 'ad-item';
+                        adElement.innerHTML = `
+                            <h2>${ad.name}</h2>
+                            <p>${ad.description}</p>
+                            <p><strong>Gender:</strong> ${ad.gender}</p>
+                            <p><strong>Location:</strong> ${ad.city}, ${ad.county}, ${ad.state}</p>
+                            ${ad.picture_urls ? '<p><strong>Pictures:</strong><br>' + ad.picture_urls.split(',').map(url => `<img src="${url}" alt="Ad Image">`).join('<br>') + '</p>' : ''}
+                            ${ad.video_urls ? '<p><strong>Videos:</strong><br>' + ad.video_urls.split(',').map(url => `<video controls src="${url}"></video>`).join('<br>') + '</p>' : ''}
+                        `;
+                        adsContainer.appendChild(adElement);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
