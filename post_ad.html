@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post an Ad</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Post an Ad</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="fetch_post.html">View Ads</a>
+            <a href="login.html">Login</a>
+            <a href="register.html">Register</a>
+        </nav>
+    </header>
+
+    <main>
+        <form id="postAdForm" enctype="multipart/form-data">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender" required>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+            </select>
+
+            <label for="city">City:</label>
+            <input type="text" id="city" name="city" required>
+
+            <label for="county">County:</label>
+            <input type="text" id="county" name="county" required>
+
+            <label for="state">State:</label>
+            <input type="text" id="state" name="state" required>
+
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea>
+
+            <label for="pictures">Pictures:</label>
+            <input type="file" id="pictures" name="pictures[]" multiple>
+
+            <label for="videos">Videos:</label>
+            <input type="file" id="videos" name="videos[]" multiple>
+
+            <button type="submit">Post Ad</button>
+        </form>
+    </main>
+
+    <footer>
+        &copy; 2024 Personal Ads Site. All rights reserved.
+    </footer>
+
+    <script>
+        document.getElementById('postAdForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('submit_ad.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => alert(data))
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
