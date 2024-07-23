@@ -15,7 +15,7 @@ Backend: PHP
 Database: MySQL
 
 # Project Structure
-/personal-ads-site
+```/personal-ads-site
 |-- /css
 |   |-- styles.css
 |-- /js
@@ -33,7 +33,7 @@ Database: MySQL
 |-- login.php
 |-- register.php
 |-- .gitignore
-|-- README.md
+|-- README.md```
 
 # Setup Instructions
 Clone the Repository
