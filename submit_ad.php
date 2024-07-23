@@ -1,61 +1,62 @@
 <?php
-session_start();
-include 'db.php';
+// Database connection
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "personal_ads";
 
-if (!isset($_COOKIE['session_token'])) {
-    die("Unauthorized");
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
-$session_token = $_COOKIE['session_token'];
-$sql = "SELECT user_id FROM sessions WHERE session_token = '$session_token'";
-$result = $conn->query($sql);
-$session = $result->fetch_assoc();
+// Handle form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = $_POST['name'];
+    $gender = $_POST['gender'];
+    $city = $_POST['city'];
+    $county = $_POST['county'];
+    $state = $_POST['state'];
+    $description = $_POST['description'];
 
-if (!$session) {
-    die("Unauthorized");
-}
-
-$user_id = $session['user_id'];
-
-$name = $_POST['name'];
-$gender = $_POST['gender'];
-$city = $_POST['city'];
-$county = $_POST['county'];
-$state = $_POST['state'];
-$description = $_POST['description'];
-
-// Handle file uploads
-$picture_urls = '';
-if (!empty($_FILES['pictures']['name'][0])) {
-    foreach ($_FILES['pictures']['tmp_name'] as $key => $tmp_name) {
-        $file_name = basename($_FILES['pictures']['name'][$key]);
-        $file_path = 'uploads/' . $file_name;
-        move_uploaded_file($tmp_name, $file_path);
-        $picture_urls .= $file_path . ',';
+    // Handle file uploads
+    $picture_urls = '';
+    if (isset($_FILES['pictures'])) {
+        foreach ($_FILES['pictures']['tmp_name'] as $key => $tmp_name) {
+            $file_name = $_FILES['pictures']['name'][$key];
+            $file_tmp = $_FILES['pictures']['tmp_name'][$key];
+            $file_path = 'uploads/pictures/' . basename($file_name);
+            if (move_uploaded_file($file_tmp, $file_path)) {
+                $picture_urls .= $file_path . ',';
+            }
+        }
     }
-    $picture_urls = rtrim($picture_urls, ',');
-}
 
-$video_urls = '';
-if (!empty($_FILES['videos']['name'][0])) {
-    foreach ($_FILES['videos']['tmp_name'] as $key => $tmp_name) {
-        $file_name = basename($_FILES['videos']['name'][$key]);
-        $file_path = 'uploads/' . $file_name;
-        move_uploaded_file($tmp_name, $file_path);
-        $video_urls .= $file_path . ',';
+    $video_urls = '';
+    if (isset($_FILES['videos'])) {
+        foreach ($_FILES['videos']['tmp_name'] as $key => $tmp_name) {
+            $file_name = $_FILES['videos']['name'][$key];
+            $file_tmp = $_FILES['videos']['tmp_name'][$key];
+            $file_path = 'uploads/videos/' . basename($file_name);
+            if (move_uploaded_file($file_tmp, $file_path)) {
+                $video_urls .= $file_path . ',';
+            }
+        }
     }
-    $video_urls = rtrim($video_urls, ',');
+
+    // Insert ad into the database
+    $sql = "INSERT INTO ads (name, gender, city, county, state, description, picture_urls, video_urls) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssssssss", $name, $gender, $city, $county, $state, $description, rtrim($picture_urls, ','), rtrim($video_urls, ','));
+    
+    if ($stmt->execute()) {
+        echo "Ad posted successfully!";
+    } else {
+        echo "Error posting ad: " . $conn->error;
+    }
+
+    $stmt->close();
+    $conn->close();
 }
-
-// Insert ad into database
-$sql = "INSERT INTO posts (user_id, name, gender, city, county, state, description, picture_urls, video_urls) 
-        VALUES ('$user_id', '$name', '$gender', '$city', '$county', '$state', '$description', '$picture_urls', '$video_urls')";
-
-if ($conn->query($sql) === TRUE) {
-    echo "Ad posted successfully";
-} else {
-    echo "Error: " . $sql . "<br>" . $conn->error;
-}
-
-$conn->close();
 ?>
