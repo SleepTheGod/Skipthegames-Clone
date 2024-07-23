@@ -1,25 +1,34 @@
 <?php
-session_start();
-include 'db.php';
+// Database connection
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "personal_ads";
 
-$username = $_POST['username'];
-$password = $_POST['password'];
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-// Fetch user from database
-$sql = "SELECT * FROM users WHERE username = '$username'";
-$result = $conn->query($sql);
-$user = $result->fetch_assoc();
-
-if ($user && password_verify($password, $user['password_hash'])) {
-    $session_token = bin2hex(random_bytes(32));
-    $sql = "INSERT INTO sessions (user_id, session_token) VALUES (" . $user['id'] . ", '$session_token')";
-    $conn->query($sql);
-
-    setcookie("session_token", $session_token, time() + (86400 * 30), "/"); // 1 month
-    header('Location: index.html');
-} else {
-    echo "Invalid username or password";
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
-$conn->close();
+// Handle login
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    $sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $username, $password);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        echo "Login successful!";
+    } else {
+        echo "Invalid username or password.";
+    }
+
+    $stmt->close();
+    $conn->close();
+}
 ?>
